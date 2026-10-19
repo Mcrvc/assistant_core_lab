@@ -1,0 +1,1924 @@
+﻿--- PAGE 1 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+CSC10014  ┬╖  PRACTICAL  TRACK  ┬╖  2026 
+Lab  3 
+Engineering  a  Maintainable  Python  Service 
+Refactoring  a  monolith  into  assistant_core:  modules,  config,  typed  models,  errors,  
+logging,
+ 
+linting 
+Practical  Track  ┬╖  Week  3  ┬╖  2.5ΓÇô3  h  ┬╖  Project:  Smart  Virtual  Assistant 
+Faculty  of  Information  Technology  ┬╖  University  of  Science,  VNU-HCM 
+Instructor:  Dr.  LE  Thanh  Tung  
+Page  1 
+--- PAGE 2 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Contents  
+  
+Page  2 
+--- PAGE 3 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+About  This  Lab  
+Lab  3  ΓÇö  Engineering  a  Maintainable  Python  Service.  Practical  track,  Week  3.  Duration:  2.5ΓÇô3  hours  in  class,  
+plus
+ 
+homework.
+ 
+Goal  
+Move  from  a  script  that  runs  to  code  that  another  developer  can  read,  configure,  debug  and  extend .  You  
+refactor
+ 
+a
+ 
+working
+ 
+but
+ 
+messy
+ 
+160-line
+ 
+script
+ 
+into
+ 
+a
+ 
+small
+ 
+package,
+ assistant_core,  with  clean  interfaces  
+for
+ 
+message
+ 
+input,
+ 
+routing,
+ 
+knowledge
+ 
+retrieval
+ 
+and
+ 
+response
+ 
+generation.
+ 
+The
+ 
+AI
+ 
+part
+ 
+stays
+ 
+a
+ 
+stub
+ 
+for
+ 
+now
+ 
+ΓÇö
+ 
+it
+ 
+arrives
+ 
+in
+ 
+Week
+ 
+4.
+ 
+ 
+Figure  0.1  ΓÇö  The  target  architecture  of  assistant_core. 
+Learning  outcomes  
+1.
+ 
+Recognise
+ 
+code
+ 
+smells:
+ 
+globals,
+ 
+hard-coded
+ 
+secrets,
+ 
+bare
+ except:,  magic  strings,  mixed  concerns.  
+2.
+ 
+Split
+ 
+code
+ 
+into
+ 
+modules
+ 
+with
+ 
+one
+ 
+responsibility
+ 
+each
+ 
+(cohesion)
+ 
+and
+ 
+few
+ 
+dependencies
+ 
+(low
+ 
+coupling).
+ 
+3.
+ 
+Separate
+ 
+configuration
+ 
+from
+ 
+code
+ 
+with
+ 
+environment
+ 
+variables
+ 
+and
+ .env.  
+4.
+ 
+Define
+ 
+typed
+ 
+request/response
+ 
+models
+ 
+with
+ 
+Pydantic.
+ 
+5.
+ 
+Replace
+ 
+bare
+ except: with  meaningful  exceptions  and  fallbacks.  
+6.
+ 
+Add
+ 
+structured
+ 
+logging
+ 
+that
+ 
+never
+ 
+leaks
+ 
+secrets.
+ 
+7.
+ 
+Lint
+ 
+and
+ 
+format
+ 
+with
+ 
+Ruff;
+ 
+pin
+ 
+dependencies.
+ 
+8.
+ 
+Refactor
+ 
+AI-generated
+ 
+code
+ 
+instead
+ 
+of
+ 
+accepting
+ 
+it
+ 
+as-is.
+ 
+What  you  hand  in  
+Kind
+ Deliverable 
+Individual
+ refactored  package  on  your  branch;  tests  pass;  ruff  check clean  
+Page  3 
+
+--- PAGE 4 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Kind
+ Deliverable 
+Individual
+ 
+before/after
+ 
+maintainability
+ 
+worksheet
+ 
+Team
+ assistant_core in  the  team  repository,  with  
+documented
+ 
+service
+ 
+interface
+ 
+Team
+ .env.example,  pinned  requirements.txt,  docs/architecture.md 
+Individual,
+ 
+homework
+ AI-extension  review:  three  changes  you  made  to  
+AI-generated
+ 
+code
+  
+Materials  
+lab03/
+ 
+Γö£ΓöÇΓöÇ
+ 
+monolith/assistant_monolith.py
+   
+#
+ 
+the
+ 
+script
+ 
+you
+ 
+refactor
+ 
+(163
+ 
+lines)
+ 
+Γö£ΓöÇΓöÇ
+ 
+monolith/data/offices.csv
+ 
+Γö£ΓöÇΓöÇ
+ 
+monolith/data/handbook.json
+      
+#
+ 
+five
+ 
+sample
+ 
+rules
+ 
+ΓööΓöÇΓöÇ
+ 
+worksheets/
+ 
+    
+Γö£ΓöÇΓöÇ
+ 
+before_after_maintainability.md
+ 
+    
+ΓööΓöÇΓöÇ
+ 
+ai_extension_review.md
+ 
+ 
+A  reference  solution  exists  and  is  released  after  the  homework  deadline.  
+Timeline  
+Time
+ Activity 
+0:00ΓÇô0:25
+ 
+Run
+ 
+and
+ 
+read
+ 
+the
+ 
+monolith;
+ 
+list
+ 
+the
+ 
+smells
+ 
+0:25ΓÇô0:40
+ 
+Target
+ 
+design:
+ 
+modules
+ 
+and
+ 
+interfaces
+ 
+0:40ΓÇô2:10
+ 
+Refactor,
+ 
+steps
+ 
+1ΓÇô10
+ 
+(with
+ 
+tests
+ 
+after
+ 
+each
+ 
+step)
+ 
+2:10ΓÇô2:30
+ 
+Lint,
+ 
+format,
+ 
+pin;
+ 
+architecture
+ 
+note
+ 
+2:30ΓÇô2:50
+ 
+Before/after
+ 
+comparison;
+ 
+team
+ 
+integration
+ 
+plan
+ 
+2:50ΓÇô3:00
+ 
+Submit;
+ 
+explain
+ 
+the
+ 
+AI-extension
+ 
+homework
+  
+Page  4 
+--- PAGE 5 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Before  Class  
+1.
+ 
+Labs
+ 
+1
+ 
+and
+ 
+2
+ 
+done;
+ 
+your
+ 
+team
+ 
+repository
+ 
+has
+ 
+a
+ 
+protected
+ main.  
+2.
+ 
+Read
+ 
+The
+ 
+Twelve-Factor
+ 
+App
+,
+ 
+factors
+ 
+I
+ 
+(Codebase),
+ 
+II
+ 
+(Dependencies),
+ 
+III
+ 
+(Config)
+ 
+and
+ 
+XI
+ 
+(Logs).
+ 
+3.
+ 
+Skim
+ 
+the
+ 
+Python
+ 
+Packaging
+ 
+User
+ 
+Guide
+ 
+tutorial
+ 
+Packaging
+ 
+Python
+ 
+Projects
+.
+ 
+4.
+ 
+Python
+ 
+bootcamp
+ 
+Week
+ 
+2
+ 
+(dataclasses,
+ 
+exceptions,
+ 
+pytest)
+ 
+ΓÇö
+ 
+very
+ 
+helpful
+ 
+today.
+ 
+Page  5 
+--- PAGE 6 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Part  A  ΓÇö  Read  the  Monolith  
+A.1  Run  it  first  
+$  cd  lab03/monolith $  python  assistant_monolith.py  --test Hello!  I  can  help  with  offices,  fees  and  rules. Your  tuition  is  9450000  VND Library:  room  B.201,  open  Mon-Sat  07:00-20:00 [debug]  calling  gpt-small  with  key  sk-test-2b7c1d9e4f0a  prompt:  Answer  using  this  rule:  ... Here  is  what  I  found:  ...  (source:  H26-5.3) too  many  credits empty 
+ 
+It  works.  Run  it  several  times  ΓÇö  sometimes  the  "LLM"  fails  randomly  and  the  output  changes.  That  alone  
+makes
+ 
+it
+ 
+hard
+ 
+to
+ 
+test.
+ 
+A.2  Hunt  the  smells  
+Read  the  file  and  list  every  problem  you  find.  Work  in  pairs  for  15  minutes.  
+#
+ Smell Where Why  it  hurts 
+1
+ Hard-coded  secret,  printed  
+in
+ 
+debug
+ 
+output
+ 
+API_KEY,  llm() leaks  the  key  into  logs  and  
+Git
+ 
+2
+ Configuration  mixed  with  
+code
+ 
+RATE,  RETAKE_RATE,  MODEL,  DEBUG changing  a  fee  means  editing  code  
+3
+ 
+Global
+ 
+mutable
+ 
+state
+ history,  offices,  handbook hidden  coupling,  untestable  
+4
+ Bare  except: load(),  main() hides  real  errors  (even  
+Ctrl+C)
+ 
+5
+ One  function  does  
+everything
+ 
+handle()
+ routing,  parsing,  fees,  
+search,
+ 
+LLM
+ 
+mixed
+ 
+6
+ Magic  strings  /  return  
+values
+ 
+"empty",  "saved",  "too  many  credits" callers  cannot  tell  success  from  error  
+7
+ print instead  of  logging  throughout  no  levels,  no  structure  
+8
+ 
+Hand-made
+ 
+tests
+ 
+that
+ 
+print
+ test() nobody  checks  the  output  
+9
+ Paths  built  with  string  + BASE  +  "/data/..." breaks  across  OSes  
+10
+ Non-deterministic  
+behaviour
+ 
+random.random() in  llm() flaky  results  
+ 
+EXERCISE
+ Find  at  least  eight.  Then,  for  each,  write  which  module  in  Figure  0.1  will  own  the  fix.  
+ 
+Page  6 
+--- PAGE 7 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+A.3  What  we  keep  
+The  behaviour  stays  the  same:  greetings,  office  lookup,  tuition  calculation,  rule  search  with  a  source.  
+Refactoring
+ 
+means
+ 
+changing
+ 
+structure
+ 
+without
+ 
+changing
+ 
+behaviour
+.
+ 
+Tests
+ 
+will
+ 
+prove
+ 
+it.
+ 
+Page  7 
+--- PAGE 8 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Part  B  ΓÇö  Target  Design  
+B.1  One  responsibility  per  module  
+Module
+ Responsibility 
+config.py
+ read  settings  from  the  environment;  validate  
+errors.py
+ named  exceptions  
+models.py
+ public  contract:  Message,  Response,  Intent,  Source 
+router.py
+ choose  an  Intent with  simple  rules  
+knowledge.py
+ office  directory  (CSV)  and  handbook  (JSON)  with  search  
+tools.py
+ deterministic  tuition  calculation  
+responder.py
+ response  generation  behind  one  interface  (stub  LLM,  
+template)
+ 
+service.py
+ AssistantService.handle(Message)  ->  Response ΓÇö  the  only  entry  point  
+logging_setup.py
+ structured  JSON  logs  
+__main__.py
+ command-line  interface   
+B.2  The  service  interface  
+AssistantService.handle(msg:  Message)  ->  Response   Message:   text  (1ΓÇô2000  chars),  session_id Response:  answer,  intent,  sources[],  degraded  (True  if  a  fallback  was  used) Errors:    invalid  input  ->  ValidationError;  startup  ->  ConfigError  /  DataError;           provider  failures  never  reach  the  caller  (fallback  instead) 
+ 
+The  CLI  today,  the  FastAPI  backend  in  Lab  4  and  the  UI  in  Lab  7  all  call  this  one  method.  That  is  what  makes  
+the
+ 
+service
+ 
+maintainable.
+ 
+B.3  Package  layout  
+assistant_core_lab/
+ 
+Γö£ΓöÇΓöÇ
+ 
+pyproject.toml
+ 
+Γö£ΓöÇΓöÇ
+ 
+requirements.txt
+ 
+Γö£ΓöÇΓöÇ
+ 
+.env.example
+ 
+Γö£ΓöÇΓöÇ
+ 
+.gitignore
+ 
+Γö£ΓöÇΓöÇ
+ 
+data/offices.csv
+  
+data/handbook.json
+ 
+Γö£ΓöÇΓöÇ
+ 
+docs/architecture.md
+ 
+Γö£ΓöÇΓöÇ
+ 
+src/assistant_core/
+ 
+Γöé
+   
+Γö£ΓöÇΓöÇ
+ 
+__init__.py
+  
+__main__.py
+  
+config.py
+  
+errors.py
+  
+models.py
+ 
+Γöé
+   
+Γö£ΓöÇΓöÇ
+ 
+router.py
+  
+knowledge.py
+  
+tools.py
+  
+responder.py
+ 
+Γöé
+   
+Γö£ΓöÇΓöÇ
+ 
+service.py
+  
+logging_setup.py
+ 
+ΓööΓöÇΓöÇ
+ 
+tests/
+ 
+    
+Γö£ΓöÇΓöÇ
+ 
+conftest.py
+  
+test_tools.py
+  
+test_router.py
+  
+test_service.py
+ 
+ 
+Page  8 
+--- PAGE 9 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Part  C  ΓÇö  Refactor  Step  by  Step  
+Work  on  a  branch:  git  switch  -c  refactor/assistant-core-<you>.  After  every  step,  run  the  tests  and  
+commit.
+ 
+Step  1  ΓÇö  Project  skeleton  
+$  mkdir  -p  assistant_core_lab/src/assistant_core  assistant_core_lab/tests  assistant_core_lab/docs $  cp  -r  lab03/monolith/data  assistant_core_lab/ $  cd  assistant_core_lab $  python  -m  venv  .venv  &&  source  .venv/bin/activate 
+ 
+pyproject.toml
+:  
+[build-system]
+ requires  =  ["setuptools>=68"] build-backend  =  "setuptools.build_meta"   [project] name  =  "assistant-core" version  =  "0.3.0" requires-python  =  ">=3.10" dependencies  =  ["pydantic>=2.7,<3",  "python-dotenv>=1.0,<2"]   [tool.setuptools.packages.find] where  =  ["src"]   [tool.pytest.ini_options] pythonpath  =  ["src"]   [tool.ruff] line-length  =  120 [tool.ruff.lint] select  =  ["E",  "F",  "I",  "B",  "UP",  "BLE"] 
+ 
+requirements.txt
+ (pinned):  
+pydantic==2.9.2
+ python-dotenv==1.0.1 pytest==8.3.3 ruff==0.6.9 
+ 
+$  pip  install  -r  requirements.txt  &&  pip  install  -e  . $  git  add  .  &&  git  commit  -m  "chore:  skeleton  for  assistant_core  package" 
+ 
+Step  2  ΓÇö  Named  exceptions  (errors.py)  
+class  AssistantError(Exception):     """Base  class  for  all  assistant  errors."""   
+Page  9 
+--- PAGE 10 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+class  ConfigError(AssistantError):     """Configuration  is  missing  or  invalid."""   class  DataError(AssistantError):     """A  knowledge  file  is  missing  or  malformed."""   class  InvalidRequest(AssistantError):     """The  user's  request  cannot  be  processed  as  given."""   class  ProviderError(AssistantError):     """The  AI  provider  failed  (timeout,  outage,  bad  response).""" 
+ 
+Each  bare  except: in  the  monolith  will  become  except of  one  of  these  ΓÇö  or  of  a  specific  built-in  such  as  
+FileNotFoundError
+.  
+Step  3  ΓÇö  Configuration  (config.py,  .env.example)  
+Twelve-Factor  III:  store  config  in  the  environment .  Code  reads  settings;  it  never  contains  them.  
+from  pydantic  import  BaseModel,  Field from  dotenv  import  load_dotenv import  os from  pathlib  import  Path from  assistant_core.errors  import  ConfigError   class  Settings(BaseModel):     data_dir:  Path  =  Path("data")     llm_provider:  str  =  "stub"     llm_api_key:  str  |  None  =  Field(default=None,  repr=False)    #  never  printed     credit_rate_vnd:  int  =  450_000     retake_multiplier:  float  =  1.5     max_credits:  int  =  30     log_level:  str  =  "INFO"   def  load_settings(env_file:  str  |  None  =  ".env")  ->  Settings:     if  env_file:         load_dotenv(env_file,  override=False)     s  =  Settings(         data_dir=Path(os.getenv("ASSISTANT_DATA_DIR",  "data")),         llm_provider=os.getenv("LLM_PROVIDER",  "stub"),         llm_api_key=os.getenv("LLM_API_KEY")  or  None,         credit_rate_vnd=int(os.getenv("CREDIT_RATE_VND",  "450000")),         retake_multiplier=float(os.getenv("RETAKE_MULTIPLIER",  "1.5")),         max_credits=int(os.getenv("MAX_CREDITS",  "30")),         log_level=os.getenv("LOG_LEVEL",  "INFO"),     )     if  s.llm_provider  !=  "stub"  and  not  s.llm_api_key:         raise  ConfigError(f"LLM_API_KEY  is  required  when  LLM_PROVIDER={s.llm_provider!r}")     return  s 
+ 
+#  .env.example   (committed)           #  .env   (NOT  committed) ASSISTANT_DATA_DIR=data LLM_PROVIDER=stub LLM_API_KEY= CREDIT_RATE_VND=450000 RETAKE_MULTIPLIER=1.5 MAX_CREDITS=30 LOG_LEVEL=INFO 
+Page  10 
+--- PAGE 11 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+ 
+WARNING
+ repr=False on  llm_api_key keeps  the  key  out  of  print(settings) and  error  messages.  Add  .env to  .gitignore before  creating  it.  
+ 
+Step  4  ΓÇö  Typed  models  (models.py)  
+from  enum  import  Enum from  pydantic  import  BaseModel,  Field   class  Intent(str,  Enum):     GREETING  =  "greeting"     FEE  =  "fee"     OFFICE  =  "office"     RULE  =  "rule"     UNKNOWN  =  "unknown"   class  Message(BaseModel):     text:  str  =  Field(min_length=1,  max_length=2000)     session_id:  str  =  "local"   class  Source(BaseModel):     id:  str     title:  str   class  Response(BaseModel):     answer:  str     intent:  Intent     sources:  list[Source]  =  []     degraded:  bool  =  False 
+ 
+The  monolith's  magic  return  values  ("empty")  disappear:  an  empty  message  is  now  rejected  at  the  
+boundary
+ 
+by
+ 
+Pydantic.
+ 
+>>>  Message(text="") pydantic_core._pydantic_core.ValidationError:  1  validation  error  for  Message text   String  should  have  at  least  1  character 
+ 
+Step  5  ΓÇö  Knowledge  sources  (knowledge.py)  
+Replace  the  globals  offices and  handbook with  two  small  classes  that  load  their  data  once  and  offer  one  
+method
+ 
+each:
+ 
+@dataclass(frozen=True)
+ class  Office:     name:  str     room:  str     hours:  str   class  OfficeDirectory:     def  __init__(self,  offices:  dict[str,  Office]):         self._offices  =  offices 
+Page  11 
+--- PAGE 12 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+ 
+     @classmethod     def  from_csv(cls,  path:  Path)  ->  OfficeDirectory:         try:             with  path.open(encoding="utf-8",  newline="")  as  f:                 rows  =  list(csv.DictReader(f))         except  FileNotFoundError  as  exc:             raise  DataError(f"office  file  not  found:  {path}")  from  exc         return  cls({r["name"].lower():  Office(r["name"],  r["room"],  r["hours"])  for  r  in  rows})       @property     def  names(self)  ->  set[str]:         return  set(self._offices)       def  find(self,  text:  str)  ->  Office  |  None:         t  =  text.lower()         return  next((o  for  name,  o  in  self._offices.items()  if  name  in  t),  None) 
+ 
+Handbook
+ follows  the  same  shape  with  from_json() and  search(query)  ->  Rule  |  None (keyword  
+overlap
+ 
+ΓÇö
+ 
+a
+ 
+baseline
+ 
+you
+ 
+will
+ 
+improve
+ 
+in
+ 
+Week
+ 
+3
+ 
+of
+ 
+the
+ 
+theory
+ 
+track).
+ 
+Step  6  ΓÇö  Deterministic  tools  (tools.py)  and  the  first  tests  
+The  fee  logic  becomes  two  pure  functions.  No  I/O,  no  globals  ΓÇö  trivial  to  test.  
+def  parse_credits(text:  str)  ->  tuple[int,  int]:     """Extract  (credits,  retake_credits)  from  'fee  for  18  credits  and  2  retake'."""     retake  =  re.search(r"(\d+)\s*retake",  text)     numbers  =  [int(n)  for  n  in  re.findall(r"\d+",  text)]     retake_n  =  int(retake.group(1))  if  retake  else  0     others  =  numbers.copy()     if  retake:         others.remove(retake_n)     if  not  others:         raise  InvalidRequest("How  many  credits?")     return  others[0],  retake_n   def  tuition(credits:  int,  retake:  int,  rate:  int,  retake_multiplier:  float,  max_credits:  int)  ->  int:     if  not  1  <=  credits  <=  max_credits:         raise  InvalidRequest(f"Credits  must  be  between  1  and  {max_credits}.")     return  int(credits  *  rate  +  retake  *  rate  *  retake_multiplier) 
+ 
+#  tests/test_tools.py def  test_parse_with_retake():     assert  parse_credits("tuition  for  18  credits  and  2  retake")  ==  (18,  2)   def  test_tuition_value():     assert  tuition(18,  2,  450_000,  1.5,  30)  ==  9_450_000    #  same  as  the  monolith   @pytest.mark.parametrize("credits",  [0,  31]) def  test_tuition_out_of_range(credits):     with  pytest.raises(InvalidRequest):         tuition(credits,  0,  450_000,  1.5,  30) 
+ 
+Page  12 
+--- PAGE 13 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+NOTE
+ The  expected  value  9_450_000 comes  from  running  the  monolith.  A  characterisation  test  like  this  locks  in  the  old  behaviour  so  the  refactor  cannot  silently  change  it.  
+ 
+Step  7  ΓÇö  The  router  (router.py)  
+GREETINGS  =  frozenset({"hi",  "hello",  "hey",  "xin  chao"})   def  route(text:  str,  office_names:  set[str])  ->  Intent:     t  =  text.lower().strip().rstrip("?!.")     if  t  in  GREETINGS:         return  Intent.GREETING     if  "fee"  in  t  or  "tuition"  in  t:         return  Intent.FEE     if  any(name  in  t  for  name  in  office_names):         return  Intent.OFFICE     return  Intent.RULE 
+ 
+Four  tests,  one  per  intent,  go  into  tests/test_router.py.  
+Step  8  ΓÇö  The  responder  interface  (responder.py)  
+The  LLM  becomes  a  replaceable  component  behind  a  Protocol (the  adapter  pattern).  Today  there  are  two  
+implementations:
+ 
+a
+ 
+template
+ 
+(no
+ 
+AI)
+ 
+and
+ 
+a
+ 
+stub
+ 
+that
+ 
+can
+ 
+simulate
+ 
+failure.
+ 
+class  Responder(Protocol):     def  explain(self,  question:  str,  rule:  Rule)  ->  str:  ...   class  TemplateResponder:     def  explain(self,  question:  str,  rule:  Rule)  ->  str:         return  f"{rule.title}:  {rule.text}"   class  StubLLMResponder:     def  __init__(self,  fail:  bool  =  False):         self.fail  =  fail     def  explain(self,  question:  str,  rule:  Rule)  ->  str:         if  self.fail:             raise  ProviderError("stub  provider  unavailable")         return  f"Based  on  '{rule.title}':  {rule.text}" 
+ 
+No  random  failures,  no  sleeping,  no  key  in  logs.  In  Week  4  a  real  provider  class  is  added  without  changing  
+the
+ 
+service
+.
+ 
+Step  9  ΓÇö  The  service  (service.py)  
+class  AssistantService:     def  __init__(self,  settings,  offices,  handbook,  responder):         self.settings,  self.offices,  self.handbook  =  settings,  offices,  handbook         self.responder  =  responder         self.fallback  =  TemplateResponder()       def  handle(self,  msg:  Message)  ->  Response:         intent  =  route(msg.text,  self.offices.names) 
+Page  13 
+--- PAGE 14 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+        if  intent  is  Intent.GREETING:             return  Response(answer="Hello!  I  can  help  with  offices,  fees  and  rules.",  intent=intent)         if  intent  is  Intent.FEE:             return  self._fee(msg.text)         if  intent  is  Intent.OFFICE:             o  =  self.offices.find(msg.text)             return  Response(answer=f"{o.name}:  room  {o.room},  open  {o.hours}.",  intent=intent)         return  self._rule(msg.text)       def  _rule(self,  text:  str)  ->  Response:         rule  =  self.handbook.search(text)         if  rule  is  None:             return  Response(answer="Sorry,  I  don't  know  that  yet.",  intent=Intent.UNKNOWN)         sources  =  [Source(id=rule.id,  title=rule.title)]         try:             return  Response(answer=self.responder.explain(text,  rule),  intent=Intent.RULE,  sources=sources)         except  ProviderError:             log.warning("provider  failed;  using  template  fallback")             answer  =  self.fallback.explain(text,  rule)             return  Response(answer=answer,  intent=Intent.RULE,  sources=sources,  degraded=True) 
+ 
+The  service  receives  its  dependencies  in  the  constructor  ( dependency  injection ),  so  tests  can  pass  a  failing  
+stub:
+ 
+def  test_fallback_when_provider_fails(service):     service.responder  =  StubLLMResponder(fail=True)     r  =  service.handle(Message(text="thesis  registration  credits"))     assert  r.degraded  and  r.sources 
+ 
+Step  10  ΓÇö  Structured  logging  and  the  CLI  
+class  JsonFormatter(logging.Formatter):     def  format(self,  record):         data  =  {"level":  record.levelname,  "logger":  record.name,  "msg":  record.getMessage()}         for  key  in  ("intent",  "latency_ms",  "session",  "degraded"):             if  hasattr(record,  key):                 data[key]  =  getattr(record,  key)         return  json.dumps(data,  ensure_ascii=False) 
+ 
+$  python  -m  assistant_core  "tuition  for  18  credits  and  2  retake" {"level":  "INFO",  "logger":  "assistant_core",  "msg":  "handled",  "intent":  "fee",  "latency_ms":  0.1,  "session":  "local",  "degraded":  false} Your  tuition  is  9,450,000  VND. 
+ 
+Logs  go  to  stderr  and  answers  to  stdout ,  so  they  can  be  separated:  python  -m  assistant_core  "hi"  2>  
+app.log
+.  
+WARNING
+ Log  the  intent,  latency  and  whether  a  fallback  was  used  ΓÇö  never  the  API  key  and  never  the  full  user  message.  
+ 
+Page  14 
+--- PAGE 15 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Part  D  ΓÇö  Quality  Gates  
+D.1  Tests  
+$  pytest  -q ...............                                               [100%] 15  passed  in  0.02s 
+ 
+D.2  Lint  and  format  with  Ruff  
+$  ruff  check  . All  checks  passed! $  ruff  format  . $  ruff  check  --select  BLE  .      #  no  blind  'except  Exception'  left 
+ 
+D.3  Dependency  pinning  
+requirements.txt
+ has  exact  versions;  pyproject.toml has  compatible  ranges.  Commit  both.  A  new  
+teammate
+ 
+runs
+ pip  install  -r  requirements.txt and  gets  the  same  versions  as  CI.  
+D.4  Architecture  note  
+Write  docs/architecture.md with  three  sections:  module  table  (Part  B.1),  the  service  interface  (Part  B.2),  
+and
+ 
+three
+ 
+decisions
+ 
+with
+ 
+reasons,
+ 
+for
+ 
+example:
+ 
+ΓÇó
+ 
+Fees
+ 
+are
+ 
+computed
+ 
+in
+ tools.py,  never  by  an  LLM  (exact,  testable).  
+ΓÇó
+ 
+The
+ 
+LLM
+ 
+sits
+ 
+behind
+ Responder;  stub needs  no  key,  so  tests  and  CI  run  offline.  
+ΓÇó
+ 
+Configuration
+ 
+comes
+ 
+from
+ 
+the
+ 
+environment;
+ .env.example documents  every  variable.  
+Page  15 
+--- PAGE 16 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Part  E  ΓÇö  Before  and  After  
+Fill  in  lab03/worksheets/before_after_maintainability.md.  
+Question
+ Monolith assistant_core 
+Places
+ 
+to
+ 
+change
+ 
+the
+ 
+credit
+ 
+rate
+ 
+1
+ 
+constant
+ 
+in
+ 
+code
+ 1  variable  in  .env 
+Tests  run  offline  and  
+deterministically?
+ 
+no
+ 
+yes
+ 
+Missing  handbook.json prints  and  continues  silently  DataError at  startup  
+Secret
+ 
+printed
+ 
+or
+ 
+logged?
+ 
+yes
+ 
+no
+ 
+Module-level
+ 
+globals
+ 
+9
+ 
+(3
+ 
+mutable)
+ 
+0
+ 
+Bare  except: 3  0  
+Longest
+ 
+function
+ 
+(lines)
+ ~65  (handle)  ~15  
+Swap  the  LLM  without  touching  the  
+service?
+ 
+no
+ 
+yes
+ 
+ 
+CHECK  YOURSELF What  got  more  complex?  (More  files  and  a  few  more  concepts.)  When  is  that  trade-off  worth  it?  (When  more  than  one  person  maintains  the  code,  or  it  must  be  tested  and  extended  ΓÇö  i.e.  our  project.)  
+ 
+Page  16 
+--- PAGE 17 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Part  F  ΓÇö  Team  Integration  
+The  team  merges  one  version  of  assistant_core into  the  team  repository:  
+1.
+ 
+Each
+ 
+member
+ 
+opens
+ 
+a
+ 
+PR
+ 
+with
+ 
+their
+ 
+refactor
+ 
+branch.
+ 
+2.
+ 
+Compare
+ 
+the
+ 
+four
+ 
+PRs
+ 
+in
+ 
+a
+ 
+15-minute
+ 
+team
+ 
+review:
+ 
+pick
+ 
+the
+ 
+clearest
+ 
+version
+ 
+as
+ 
+the
+ 
+base.
+ 
+3.
+ 
+Improve
+ 
+the
+ 
+base
+ 
+with
+ 
+the
+ 
+best
+ 
+ideas
+ 
+from
+ 
+the
+ 
+others
+ 
+(credit
+ 
+them
+ 
+with
+ Co-authored-by).  
+4.
+ 
+Merge,
+ 
+then
+ 
+split
+ 
+follow-up
+ 
+issues
+ 
+so
+ 
+everyone
+ 
+owns
+ 
+one
+ 
+module:
+ 
+Member
+ Owns  (issue) 
+1
+ service.py,  CLI,  architecture  note  
+2
+ config.py,  .env.example,  logging  
+3
+ knowledge.py and  responder.py (ready  for  Week  4  
+AI)
+ 
+4
+ tools.py,  router  tests,  Ruff  in  CI   
+Member  1  tags  v0.3-core.  
+Page  17 
+--- PAGE 18 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Homework  
+H1  ΓÇö  AI  extension  review  (individual)  
+1.
+ 
+Ask
+ 
+an
+ 
+AI
+ 
+coding
+ 
+assistant
+ 
+to
+ 
+extend
+ 
+your
+ 
+service
+ 
+with
+ 
+one
+ 
+feature
+ 
+ΓÇö
+ 
+e.g.
+ 
+"answer
+ 
+exam-absence
+ 
+questions
+ 
+with
+ 
+the
+ 
+deadline
+ 
+from
+ 
+the
+ 
+handbook",
+ 
+or
+ 
+"support
+ help listing  what  the  bot  can  do".  
+2.
+ 
+Review
+ 
+the
+ 
+generated
+ 
+code
+ 
+manually.
+ 
+Document
+ 
+at
+ 
+least
+ 
+three
+ 
+changes
+ 
+you
+ 
+made
+ 
+to
+ 
+improve
+ 
+it
+ 
+in
+ docs/lab3/ai_extension_review.md (template  in  lab03/worksheets/).  
+3.
+ 
+Typical
+ 
+things
+ 
+to
+ 
+check:
+ 
+does
+ 
+it
+ 
+respect
+ 
+the
+ 
+interfaces
+ 
+(route
+ 
+ΓåÆ
+ 
+service
+ 
+ΓåÆ
+ 
+responder)?
+ 
+add
+ 
+new
+ 
+dependencies?
+ 
+log
+ 
+user
+ 
+data?
+ 
+add
+ 
+real
+ 
+tests?
+ 
+4.
+ 
+Record
+ 
+the
+ 
+use
+ 
+in
+ docs/ai-use-log.md;  open  a  PR.  
+H2  ΓÇö  Python  bootcamp,  Week  3  (individual  +  team)  
+Git  &  GitHub  tutorial,  Chapter  18.7:  W3-1  to  W3-4  and  team  exercise  T-W3  (integrate  study_planner).  Tag  
+py-w3-done
+.  
+H3  ΓÇö  Reading  
+The  Twelve-Factor  App  (Codebase,  Dependencies,  Config,  Logs);  Python  Packaging  User  Guide  tutorial.  
+Reflection:
+ 
+which
+ 
+factor
+ 
+does
+ 
+the
+ 
+monolith
+ 
+violate
+ 
+most,
+ 
+and
+ 
+how
+ 
+did
+ 
+you
+ 
+fix
+ 
+it?
+ 
+Page  18 
+--- PAGE 19 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+How  to  Submit  
+What
+ Who When How 
+Refactor  branch  +  PR  (tests  
+pass,
+ 
+ruff
+ 
+clean)
+ 
+each
+ 
+member
+ 
+end
+ 
+of
+ 
+session
+ 
+(draft
+ 
+OK)
+ 
+PR
+ 
+link
+ 
+on
+ 
+LMS
+ 
+Before/after
+ 
+worksheet
+ 
+each
+ 
+member
+ 
+end
+ 
+of
+ 
+session
+ docs/lab3/before_after.md in  your  PR  
+Team  assistant_core,  tag  v0.3-core Tech  Lead  23:59  the  day  before  Lab  4  tag  link  on  LMS  
+H1
+ 
+AI
+ 
+extension
+ 
+review
+ 
+each
+ 
+member
+ 
+23:59
+ 
+the
+ 
+day
+ 
+before
+ 
+Lab
+ 
+4
+ 
+merged
+ 
+PR
+ 
+link
+ 
+H2
+ 
+bootcamp
+ 
+W3
+ 
+team
+ 
+23:59
+ 
+the
+ 
+day
+ 
+before
+ 
+Lab
+ 
+4
+ tag  py-w3-done  
+Grading  checklist  
+Criterion
+ Points 
+Clean
+ 
+package
+ 
+structure;
+ 
+one
+ 
+responsibility
+ 
+per
+ 
+module
+ 
+2
+ 
+Config  from  environment;  .env.example;  no  secret  in  
+code
+ 
+or
+ 
+logs
+ 
+2
+ 
+Typed
+ 
+models;
+ 
+named
+ 
+exceptions;
+ 
+fallback
+ 
+path
+ 
+tested
+ 
+2
+ 
+Tests
+ 
+pass
+ 
+(
+ΓëÑ
+ 
+10),
+ 
+including
+ 
+characterisation
+ 
+tests
+ 
+1
+ 
+ruff  check clean;  dependencies  pinned  1  
+Architecture
+ 
+note
+ 
+with
+ 
+interface
+ 
+and
+ 
+3
+ 
+decisions
+ 
+1
+ 
+H1:  three  documented  improvements  to  AI-generated  
+code
+ 
+1
+ 
+Total
+ 
+10
+  
+Page  19 
+--- PAGE 20 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Troubleshooting  
+Problem
+ Fix 
+ModuleNotFoundError:  assistant_core activate  .venv;  pip  install  -e  . from  the  folder  with  pyproject.toml 
+DataError:  office  file  not  found run  from  the  project  root,  or  set  ASSISTANT_DATA_DIR 
+.env
+ 
+values
+ 
+ignored
+ the  variable  is  already  set  in  your  shell  (override=False);  open  a  new  terminal  
+Pydantic  ValidationError on  start  a  variable  in  .env has  the  wrong  type  (e.g.  MAX_CREDITS=abc)  
+Ruff  E501  line  too  long split  the  line  or  extract  a  variable  
+Ruff  BLE001  blind  except catch  a  specific  exception  instead  of  Exception 
+Circular
+ 
+import
+ 
+between
+ 
+modules
+ move  shared  types  to  models.py or  errors.py;  the  
+service
+ 
+imports
+ 
+others,
+ 
+not
+ 
+vice
+ 
+versa
+ 
+Tests
+ 
+pass
+ 
+locally,
+ 
+fail
+ 
+in
+ 
+CI
+ missing  file  in  Git,  or  a  dependency  not  pinned  in  requirements.txt  
+Page  20 
+--- PAGE 21 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Self-Check  
+1.
+ 
+What
+ 
+is
+ 
+the
+ 
+difference
+ 
+between
+ 
+refactoring
+ 
+and
+ 
+rewriting?
+ 
+2.
+ 
+Why
+ 
+does
+ Settings.llm_api_key use  repr=False?  
+3.
+ 
+Why
+ 
+is
+ tuition() a  pure  function?  
+4.
+ 
+What
+ 
+does
+ 
+the
+ degraded flag  tell  the  caller?  
+5.
+ 
+Name
+ 
+two
+ 
+benefits
+ 
+of
+ 
+passing
+ 
+the
+ 
+responder
+ 
+into
+ AssistantService instead  of  creating  it  inside.  
+6.
+ 
+Which
+ 
+Twelve-Factor
+ 
+principle
+ 
+does
+ .env.example support?  Answers.  1)  Refactoring  changes  structure  but  keeps  behaviour,  protected  by  tests;  rewriting  starts  over.  2)  
+So
+ 
+the
+ 
+key
+ 
+never
+ 
+appears
+ 
+when
+ 
+settings
+ 
+are
+ 
+printed
+ 
+or
+ 
+logged.
+ 
+3)
+ 
+Same
+ 
+input,
+ 
+same
+ 
+output,
+ 
+no
+ 
+I/O
+ 
+ΓÇö
+ 
+exact
+ 
+and
+ 
+easy
+ 
+to
+ 
+test.
+ 
+4)
+ 
+That
+ 
+a
+ 
+fallback
+ 
+path
+ 
+answered,
+ 
+e.g.
+ 
+because
+ 
+the
+ 
+provider
+ 
+failed.
+ 
+5)
+ 
+Tests
+ 
+can
+ 
+inject
+ 
+a
+ 
+fake
+ 
+or
+ 
+failing
+ 
+responder;
+ 
+providers
+ 
+can
+ 
+be
+ 
+swapped
+ 
+without
+ 
+editing
+ 
+the
+ 
+service.
+ 
+6)
+ 
+III
+ 
+ΓÇö
+ 
+Config:
+ 
+store
+ 
+configuration
+ 
+in
+ 
+the
+ 
+environment.
+ 
+Page  21 
+--- PAGE 22 ---
+CSC10014  ┬╖  Lab  3  ┬╖  Maintainable  Python  Service 
+Resources  
+ΓÇó
+ 
+The
+ 
+Twelve-Factor
+ 
+App
+ 
+ΓÇö
+ 
+12factor.net
+ 
+(I,
+ 
+II,
+ 
+III,
+ 
+XI).
+ 
+ΓÇó
+ 
+Python
+ 
+Packaging
+ 
+User
+ 
+Guide
+ 
+ΓÇö
+ 
+Packaging
+ 
+Python
+ 
+Projects
+ 
+(packaging.python.org/en/latest/tutorials/).
+ 
+ΓÇó
+ 
+Pydantic
+ 
+documentation
+ 
+ΓÇö
+ 
+Models
+ 
+and
+ 
+Fields
+.
+ 
+ΓÇó
+ 
+Python
+ 
+docs
+ 
+ΓÇö
+ 
+logging
+ 
+HOWTO
+.
+ 
+ΓÇó
+ 
+Ruff
+ 
+documentation
+ 
+ΓÇö
+ 
+Linter
+ 
+and
+ 
+Formatter
+.
+ 
+ΓÇó
+ 
+Course
+ 
+companion
+ 
+ΓÇö
+ 
+Git
+ 
+&
+ 
+GitHub
+ 
+for
+ 
+Team
+ 
+Projects
+,
+ 
+Chapters
+ 
+10,
+ 
+11,
+ 
+13
+ 
+and
+ 
+15.
+ 
+Page  22 
