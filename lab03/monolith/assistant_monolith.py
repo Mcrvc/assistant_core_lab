@@ -3,7 +3,7 @@
 # DO NOT copy this style. Your job is to refactor it.
 import csv, json, sys, time, random, os
 
-API_KEY = "sk-test-2b7c1d9e4f0a"        # TODO move somewhere?
+API_KEY = "sk-test-2b7c1d9e4f0a"  # TODO move somewhere?
 MODEL = "gpt-small"
 RATE = 450000
 RETAKE_RATE = 1.5
@@ -112,7 +112,9 @@ def stats():
             c["rule"] += 1
         else:
             c["other"] += 1
-    return "fee=" + str(c["fee"]) + " office=" + str(c["office"]) + " rule=" + str(c["rule"]) + " other=" + str(c["other"])
+    return (
+        "fee=" + str(c["fee"]) + " office=" + str(c["office"]) + " rule=" + str(c["rule"]) + " other=" + str(c["other"])
+    )
 
 
 def save_history(fname):
