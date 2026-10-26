@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from assistant_core.config import Settings, load_settings
@@ -36,8 +36,13 @@ def create_app(
     weather = weather or WeatherClient(
         settings.weather_url, settings.campus_lat, settings.campus_lon, timeout_s=settings.weather_timeout_s
     )
+    feedback_store: list[FeedbackOut] = []
 
     app = FastAPI()
+
+    def require_admin(x_api_key: str | None = Header(default=None)) -> None:
+        if not settings.api_admin_key or x_api_key != settings.api_admin_key:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing or invalid API key")
 
     @app.exception_handler(HTTPException)
     async def on_http(_: Request, exc: HTTPException) -> JSONResponse:
@@ -59,6 +64,15 @@ def create_app(
         item = FeedbackOut(**fb.model_dump(), id=len(feedback_store) + 1, created_at=datetime.now(timezone.utc))
         feedback_store.append(item)
         return item
+    @app.get(
+        "/v1/feedback",
+        response_model=list[FeedbackOut],
+        tags=["feedback"],
+        dependencies=[Depends(require_admin)],
+    )
+    def list_feedback() -> list[FeedbackOut]:
+        return feedback_store
+
     @app.get(
         "/v1/weather",
         response_model=Weather,
