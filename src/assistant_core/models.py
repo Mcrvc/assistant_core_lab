@@ -36,3 +36,20 @@ class Response(BaseModel):
     intent: Intent
     sources: list[Source] = Field(default_factory=list)
     degraded: bool = False
+
+
+class ChatRequest(BaseModel):
+    """A validated chat request accepted by the HTTP boundary."""
+
+    message: str = Field(min_length=1, max_length=2000)
+    session_id: str = "local"
+
+
+class ChatResponse(BaseModel):
+    """The structured chat reply returned to the caller."""
+
+    answer: str
+    intent: Intent
+    sources: list[Source] = Field(default_factory=list)
+    degraded: bool = False
+    request_id: str
