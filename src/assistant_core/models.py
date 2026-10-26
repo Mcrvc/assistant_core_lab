@@ -1,5 +1,6 @@
 """Typed public request and response models."""
 
+from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -63,3 +64,19 @@ class Weather(BaseModel):
     description: str
     observed_at: str
     stale: bool = False
+
+
+class FeedbackIn(BaseModel):
+    """Incoming feedback from user for an answer."""
+
+    request_id: str = Field(min_length=1, max_length=64)
+    rating: int = Field(ge=-1, le=1, description="-1 = thumbs down, 0 = neutral, 1 = thumbs up")
+    comment: str | None = Field(default=None, max_length=500)
+
+
+class FeedbackOut(FeedbackIn):
+    """Saved feedback returned by the API."""
+
+    id: int
+    created_at: datetime
+

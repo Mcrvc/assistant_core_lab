@@ -2,12 +2,12 @@
 
 import uuid
 
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from assistant_core.config import Settings, load_settings
 from assistant_core.knowledge import Handbook, OfficeDirectory
-from assistant_core.models import ChatRequest, ChatResponse, Message, Weather
+from assistant_core.models import ChatRequest, ChatResponse, FeedbackOut, Message, Weather
 from assistant_core.responder import StubLLMResponder
 from assistant_core.service import AssistantService
 from assistant_core.weather import ExternalServiceError, WeatherClient
@@ -28,8 +28,13 @@ def create_app(
     weather = weather or WeatherClient(
         settings.weather_url, settings.campus_lat, settings.campus_lon, timeout_s=settings.weather_timeout_s
     )
+    feedback_store: list[FeedbackOut] = []
 
     app = FastAPI()
+
+    def require_admin(x_api_key: str | None = Header(default=None)) -> None:
+        if not settings.api_admin_key or x_api_key != settings.api_admin_key:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing or invalid API key")
 
     @app.exception_handler(HTTPException)
     async def on_http(_: Request, exc: HTTPException) -> JSONResponse:
@@ -43,6 +48,15 @@ def create_app(
     def chat(req: ChatRequest, request: Request) -> ChatResponse:
         resp = service.handle(Message(text=req.message, session_id=req.session_id))
         return ChatResponse(**resp.model_dump(), request_id=uuid.uuid4().hex[:12])
+
+    @app.get(
+        "/v1/feedback",
+        response_model=list[FeedbackOut],
+        tags=["feedback"],
+        dependencies=[Depends(require_admin)],
+    )
+    def list_feedback() -> list[FeedbackOut]:
+        return feedback_store
 
     @app.get(
         "/v1/weather",
