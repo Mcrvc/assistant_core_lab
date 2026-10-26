@@ -53,3 +53,13 @@ class ChatResponse(BaseModel):
     sources: list[Source] = Field(default_factory=list)
     degraded: bool = False
     request_id: str
+
+
+class Weather(BaseModel):
+    """Current campus weather, flagged when a stale cached value is used."""
+
+    temperature_c: float
+    wind_kmh: float
+    description: str
+    observed_at: str
+    stale: bool = False
