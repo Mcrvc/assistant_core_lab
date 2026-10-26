@@ -1,5 +1,6 @@
 """Typed public request and response models."""
 
+from datetime import datetime
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -53,3 +54,18 @@ class ChatResponse(BaseModel):
     sources: list[Source] = Field(default_factory=list)
     degraded: bool = False
     request_id: str
+
+
+class FeedbackIn(BaseModel):
+    """A validated user feedback entry."""
+
+    request_id: str = Field(min_length=1, max_length=64)
+    rating: int = Field(ge=-1, le=1, description="-1 = thumbs down, 0 = neutral, 1 = thumbs up")
+    comment: str | None = Field(default=None, max_length=500)
+
+
+class FeedbackOut(FeedbackIn):
+    """Stored feedback returned to callers."""
+
+    id: int
+    created_at: datetime
