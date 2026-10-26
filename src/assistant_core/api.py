@@ -4,24 +4,18 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
-from pydantic import BaseModel, Field
 
 from assistant_core.config import Settings
 from assistant_core.knowledge import Handbook, OfficeDirectory
-from assistant_core.models import ChatRequest, ChatResponse, Message
+from assistant_core.models import (
+    ChatRequest,
+    ChatResponse,
+    FeedbackIn,
+    FeedbackOut,
+    Message,
+)
 from assistant_core.responder import StubLLMResponder
 from assistant_core.service import AssistantService
-
-
-class FeedbackIn(BaseModel):
-    request_id: str = Field(min_length=1, max_length=64)
-    rating: int = Field(ge=-1, le=1)
-    comment: str | None = Field(default=None, max_length=500)
-
-
-class FeedbackOut(FeedbackIn):
-    id: int
-    created_at: datetime
 
 
 def create_app(settings: Settings | None = None, service: AssistantService | None = None) -> FastAPI:

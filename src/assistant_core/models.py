@@ -1,5 +1,7 @@
 """Typed public request and response models."""
 
+from datetime import datetime
+
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -53,3 +55,14 @@ class ChatResponse(BaseModel):
     sources: list[Source] = Field(default_factory=list)
     degraded: bool = False
     request_id: str
+
+
+class FeedbackIn(BaseModel):
+    request_id: str = Field(min_length=1, max_length=64)
+    rating: int = Field(ge=-1, le=1)
+    comment: str | None = Field(default=None, max_length=500)
+
+
+class FeedbackOut(FeedbackIn):
+    id: int
+    created_at: datetime
