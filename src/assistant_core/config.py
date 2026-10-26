@@ -19,6 +19,10 @@ class Settings(BaseModel):
     retake_multiplier: float = 1.5
     max_credits: int = 30
     log_level: str = "INFO"
+    weather_url: str = "https://api.open-meteo.com/v1/forecast"
+    weather_timeout_s: float = Field(default=3.0, gt=0)
+    campus_lat: float = 10.7626
+    campus_lon: float = 106.6822
 
 
 def load_settings(env_file: str | None = ".env") -> Settings:
@@ -33,6 +37,10 @@ def load_settings(env_file: str | None = ".env") -> Settings:
         retake_multiplier=float(os.getenv("RETAKE_MULTIPLIER", "1.5")),
         max_credits=int(os.getenv("MAX_CREDITS", "30")),
         log_level=os.getenv("LOG_LEVEL", "INFO"),
+        weather_url=os.getenv("WEATHER_URL", "https://api.open-meteo.com/v1/forecast"),
+        weather_timeout_s=float(os.getenv("WEATHER_TIMEOUT_S", "3")),
+        campus_lat=float(os.getenv("CAMPUS_LAT", "10.7626")),
+        campus_lon=float(os.getenv("CAMPUS_LON", "106.6822")),
     )
     if s.llm_provider != "stub" and not s.llm_api_key:
         raise ConfigError(f"LLM_API_KEY is required when LLM_PROVIDER={s.llm_provider!r}")
