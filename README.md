@@ -32,11 +32,17 @@ The client uses a three-second timeout, one retry, and a ten-minute cache by def
 `WEATHER_URL`, `WEATHER_TIMEOUT_S`, `CAMPUS_LAT` and `CAMPUS_LON` are configured
 through the environment or `.env`; no weather API key is required.
 
+Part F (bonus) rate-limits `POST /v1/chat` per client IP: at most
+`RATE_LIMIT_PER_MIN` requests (default 30) in any 60-second window. Extra requests get
+`429` with `{"error":{"code":"too_many_requests","message":"Too many requests"}}`.
+The counter lives in memory, so it resets when the server restarts.
+
 ## Test the root application
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q tests
 .venv\Scripts\python.exe -m pytest -q tests/test_api_weather.py
+.venv\Scripts\python.exe -m pytest -q tests/test_api_ratelimit.py
 ```
 
 The weather tests use `httpx.MockTransport` and run without internet access.
