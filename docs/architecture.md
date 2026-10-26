@@ -14,6 +14,8 @@
 | `service.py` | `AssistantService.handle(Message) -> Response` — the only entry point. |
 | `logging_setup.py` | Structured JSON logs to stderr. |
 | `__main__.py` | Command-line interface. |
+| `api.py` | FastAPI routes for chat and campus weather; HTTP error responses. |
+| `weather.py` | Open-Meteo client with timeout, retry and stale-cache fallback. |
 
 ## Service interface
 

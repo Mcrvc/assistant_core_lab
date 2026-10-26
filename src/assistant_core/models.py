@@ -66,3 +66,11 @@ class FeedbackIn(BaseModel):
 class FeedbackOut(FeedbackIn):
     id: int
     created_at: datetime
+class Weather(BaseModel):
+    """Current campus weather, flagged when a stale cached value is used."""
+
+    temperature_c: float
+    wind_kmh: float
+    description: str
+    observed_at: str
+    stale: bool = False
