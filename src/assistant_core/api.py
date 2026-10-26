@@ -16,6 +16,7 @@ from assistant_core.models import (
     Message,
 )
 from assistant_core.models import ChatRequest, ChatResponse, Message, Weather
+from assistant_core.ratelimit import RateLimiter
 from assistant_core.responder import StubLLMResponder
 from assistant_core.service import AssistantService
 from assistant_core.weather import ExternalServiceError, WeatherClient
@@ -37,6 +38,7 @@ def create_app(
         settings.weather_url, settings.campus_lat, settings.campus_lon, timeout_s=settings.weather_timeout_s
     )
     feedback_store: list[FeedbackOut] = []
+    limiter = RateLimiter(settings.rate_limit_per_min)
 
     app = FastAPI()
 
@@ -52,8 +54,15 @@ def create_app(
             content={"error": {"code": message.lower().replace(" ", "_"), "message": message}},
         )
 
-    @app.post("/v1/chat", response_model=ChatResponse)
+    @app.post(
+        "/v1/chat",
+        response_model=ChatResponse,
+        responses={429: {"description": "Too many requests from this client"}},
+    )
     def chat(req: ChatRequest, request: Request) -> ChatResponse:
+        client = request.client.host if request.client else "unknown"
+        if not limiter.allow(client):
+            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Too many requests")
         resp = service.handle(Message(text=req.message, session_id=req.session_id))
         return ChatResponse(**resp.model_dump(), request_id=uuid.uuid4().hex[:12])
 
