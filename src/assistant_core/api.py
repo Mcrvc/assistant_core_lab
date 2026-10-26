@@ -1,12 +1,20 @@
 """HTTP API for the assistant (v1)."""
 
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
 from assistant_core.config import Settings, load_settings
 from assistant_core.knowledge import Handbook, OfficeDirectory
+from assistant_core.models import (
+    ChatRequest,
+    ChatResponse,
+    FeedbackIn,
+    FeedbackOut,
+    Message,
+)
 from assistant_core.models import ChatRequest, ChatResponse, Message, Weather
 from assistant_core.responder import StubLLMResponder
 from assistant_core.service import AssistantService
@@ -44,6 +52,13 @@ def create_app(
         resp = service.handle(Message(text=req.message, session_id=req.session_id))
         return ChatResponse(**resp.model_dump(), request_id=uuid.uuid4().hex[:12])
 
+    feedback_store: list[FeedbackOut] = []
+
+    @app.post("/v1/feedback", response_model=FeedbackOut, status_code=201, tags=["feedback"])
+    def add_feedback(fb: FeedbackIn) -> FeedbackOut:
+        item = FeedbackOut(**fb.model_dump(), id=len(feedback_store) + 1, created_at=datetime.now(timezone.utc))
+        feedback_store.append(item)
+        return item
     @app.get(
         "/v1/weather",
         response_model=Weather,
