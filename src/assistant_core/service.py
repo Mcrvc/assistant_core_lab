@@ -58,7 +58,7 @@ class AssistantService:
         except InvalidRequest as exc:
             log.info("fee request rejected: %s", exc.__class__.__name__)
             return Response(answer=str(exc), intent=Intent.FEE, degraded=True)
-        return Response(answer=f"Your tuition is {total} VND", intent=Intent.FEE)
+        return Response(answer=f"Your tuition is {total:,} VND", intent=Intent.FEE)
 
     def _rule(self, text: str) -> Response:
         rule = self.handbook.search(text)
