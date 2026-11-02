@@ -1,4 +1,8 @@
 -- Q1 requests per intent
+SELECT intent, COUNT(*) AS requests
+FROM interaction
+GROUP BY intent
+ORDER BY requests DESC;
 
 -- Q2 average latency per intent
 SELECT intent,
