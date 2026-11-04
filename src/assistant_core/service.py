@@ -2,11 +2,21 @@ import logging
 
 from assistant_core.errors import InvalidRequest, ProviderError
 from assistant_core.models import Intent, Message, Response, Source
-from assistant_core.responder import TemplateResponder
+from assistant_core.responder import StubLLMResponder, TemplateResponder
 from assistant_core.router import route
 from assistant_core.tools import parse_credits, tuition
 
 log = logging.getLogger("assistant_core")
+
+
+def build_service(settings) -> AssistantService:
+    """Assemble an AssistantService from settings (single wiring point)."""
+    from assistant_core.knowledge import Handbook, OfficeDirectory
+
+    d = settings.data_dir
+    offices = OfficeDirectory.from_csv(d / "offices.csv")
+    handbook = Handbook.from_json(d / "handbook.json")
+    return AssistantService(settings, offices, handbook, StubLLMResponder())
 
 
 class AssistantService:
