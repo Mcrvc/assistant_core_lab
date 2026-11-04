@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from sqlmodel import Session, select
 
-from sql.db import Feedback, Repository, init_db, make_engine
+from assistant_api.db import Feedback, Repository, init_db, make_engine
 
 T0 = datetime(2026, 11, 3, 9, 0, tzinfo=timezone.utc)
 
