@@ -18,8 +18,8 @@ from assistant_core.ratelimit import RateLimiter
 from assistant_api.schemas import ChatRequest, ChatResponse, ErrorResponse, FeedbackIn, FeedbackOut, Weather
 from assistant_api.weather import ExternalServiceError, WeatherClient
 from assistant_core.models import Message
-from assistant_core.service import AssistantService
-from assistant_core.__main__ import build_service
+from assistant_core.service import AssistantService, build_service
+from assistant_api.db import Repository, init_db, make_engine
 from assistant_core.config import Settings, load_settings
 
 
