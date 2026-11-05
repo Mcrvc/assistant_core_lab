@@ -9,16 +9,6 @@ from assistant_core.tools import parse_credits, tuition
 log = logging.getLogger("assistant_core")
 
 
-def build_service(settings) -> AssistantService:
-    """Assemble an AssistantService from settings (single wiring point)."""
-    from assistant_core.knowledge import Handbook, OfficeDirectory
-
-    d = settings.data_dir
-    offices = OfficeDirectory.from_csv(d / "offices.csv")
-    handbook = Handbook.from_json(d / "handbook.json")
-    return AssistantService(settings, offices, handbook, StubLLMResponder())
-
-
 class AssistantService:
     """Single entry point for the assistant.
 
@@ -81,3 +71,13 @@ class AssistantService:
             log.warning("provider failed; using template fallback")
             answer = self.fallback.explain(text, rule)
             return Response(answer=answer, intent=Intent.RULE, sources=sources, degraded=True)
+
+
+def build_service(settings) -> AssistantService:
+    """Assemble an AssistantService from settings (single wiring point)."""
+    from assistant_core.knowledge import Handbook, OfficeDirectory
+
+    d = settings.data_dir
+    offices = OfficeDirectory.from_csv(d / "offices.csv")
+    handbook = Handbook.from_json(d / "handbook.json")
+    return AssistantService(settings, offices, handbook, StubLLMResponder())
