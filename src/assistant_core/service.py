@@ -1,6 +1,7 @@
 import logging
 
 from assistant_core.errors import InvalidRequest, ProviderError
+from assistant_core.guard import PRIVATE_REPLY, is_private_request
 from assistant_core.models import Intent, Message, Response, Source
 from assistant_core.responder import StubLLMResponder, TemplateResponder
 from assistant_core.router import route
@@ -17,12 +18,13 @@ class AssistantService:
     provider can replace the template without editing this class.
     """
 
-    def __init__(self, settings, offices, handbook, responder):
+    def __init__(self, settings, offices, handbook, responder, rag=None):
         self.settings = settings
         self.offices = offices
         self.handbook = handbook
         self.responder = responder
         self.fallback = TemplateResponder()
+        self.rag = rag
 
     def handle(self, msg: Message) -> Response:
         """Route one message and turn it into a Response.
@@ -61,6 +63,10 @@ class AssistantService:
         return Response(answer=f"Your tuition is {total:,} VND", intent=Intent.FEE)
 
     def _rule(self, text: str) -> Response:
+        if self.rag is not None:
+            if is_private_request(text):
+                return Response(answer=PRIVATE_REPLY, intent=Intent.UNKNOWN, path="abstain")
+            return self.rag.answer(text)
         rule = self.handbook.search(text)
         if rule is None:
             return Response(answer="Sorry, I don't know that yet.", intent=Intent.UNKNOWN)
