@@ -47,3 +47,20 @@ The counter lives in memory, so it resets when the server restarts.
 
 The weather tests use `httpx.MockTransport` and run without internet access.
 The tests inside `lab04/starter/` belong to the separate course starter project.
+
+## Lab 6 — Part F comparison
+
+Run from the repository root after setup:
+
+```powershell
+$env:LLM_PROVIDER = 'stub'
+$env:RETRIEVAL_KIND = 'bm25'
+$env:RETRIEVAL_MIN_SCORE = '2.0'
+.venv\Scripts\python.exe eval/compare_paths.py
+```
+
+The comparison uses the root application and all 25 Lab 6 questions in
+`eval/cases.jsonl` (20 original cases plus five H1 cases). It compares deterministic, retrieval and offline stub-LLM
+answers through the same router and tools.
+See [the Part F report](docs/lab6/path_comparison.md) for the measured table,
+failure analysis, three-sentence recommendation and code versions used.
