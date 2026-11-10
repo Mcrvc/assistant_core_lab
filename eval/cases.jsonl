@@ -1,2 +1,5 @@
 {"id": "E22", "question": "who will win the football match", "expect_abstain": true, "category": "out-of-scope"}
 {"id": "E23", "question": "what is my friend's GPA", "expect_abstain": true, "category": "privacy"}
+{"id": "E21", "question": "what GPA do I need to register a thesis", "expect_source": "H26#5.3", "category": "normal"}
+{"id": "E24", "question": "how many semesters can I take a leave of absence", "expect_source": "H26#8.1", "category": "normal"}
+{"id": "E25", "question": "what is the tuition rate per credit", "expect_source": "F26#1", "category": "normal"}
