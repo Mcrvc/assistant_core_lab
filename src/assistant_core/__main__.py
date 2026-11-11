@@ -8,10 +8,8 @@ from pydantic import ValidationError
 
 from assistant_core.config import load_settings
 from assistant_core.errors import AssistantError
-from assistant_core.knowledge import Handbook, OfficeDirectory
 from assistant_core.logging_setup import setup_logging
 from assistant_core.models import Message
-from assistant_core.responder import StubLLMResponder
 from assistant_core.service import AssistantService
 
 log = logging.getLogger("assistant_core")
@@ -21,10 +19,9 @@ def build_service() -> AssistantService:
     """Build and initialize AssistantService with runtime dependencies."""
     settings = load_settings()
     setup_logging(settings.log_level)
-    offices = OfficeDirectory.from_csv(settings.data_dir / "offices.csv")
-    handbook = Handbook.from_json(settings.data_dir / "handbook.json")
-    responder = StubLLMResponder()
-    return AssistantService(settings, offices, handbook, responder)
+    from assistant_core.service import build_service as _build
+
+    return _build(settings)
 
 
 def run_one(service: AssistantService, text: str) -> None:
@@ -44,6 +41,8 @@ def run_one(service: AssistantService, text: str) -> None:
         },
     )
     print(response.answer)
+    for src in response.sources:
+        print(f"  source: {src.id} — {src.title}")
 
 
 def main() -> None:

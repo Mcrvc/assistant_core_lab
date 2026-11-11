@@ -3,7 +3,7 @@ import logging
 from assistant_core.errors import InvalidRequest, ProviderError
 from assistant_core.guard import PRIVATE_REPLY, is_private_request
 from assistant_core.models import Intent, Message, Response, Source
-from assistant_core.responder import StubLLMResponder, TemplateResponder
+from assistant_core.responder import TemplateResponder
 from assistant_core.router import route
 from assistant_core.tools import parse_credits, tuition
 
@@ -82,8 +82,42 @@ class AssistantService:
 def build_service(settings) -> AssistantService:
     """Assemble an AssistantService from settings (single wiring point)."""
     from assistant_core.knowledge import Handbook, OfficeDirectory
+    from assistant_core.llm import make_llm
+    from assistant_core.rag.answerer import RagAnswerer
+    from assistant_core.rag.chunker import load_folder
+    from assistant_core.rag.index import make_index
+    from assistant_core.responder import make_responder
+    from assistant_core.tools import run_tool_call
 
     d = settings.data_dir
     offices = OfficeDirectory.from_csv(d / "offices.csv")
     handbook = Handbook.from_json(d / "handbook.json")
-    return AssistantService(settings, offices, handbook, StubLLMResponder())
+    responder_name = settings.llm_provider if settings.llm_provider in ("stub", "template") else "template"
+    rag = None
+    if settings.kb_dir.exists():
+        chunks = load_folder(settings.kb_dir)
+        if chunks:
+            index = make_index(settings.retrieval_kind, chunks)
+            llm = (
+                None
+                if settings.llm_provider == "template"
+                else make_llm(
+                    settings.llm_provider,
+                    settings.llm_model,
+                    settings.llm_base_url,
+                    settings.llm_api_key,
+                    settings.llm_timeout_s,
+                )
+            )
+
+            def tool_runner(raw: str) -> str | None:
+                return run_tool_call(raw, settings.credit_rate_vnd, settings.retake_multiplier, settings.max_credits)
+
+            rag = RagAnswerer(
+                index,
+                llm,
+                settings.retrieval_min_score,
+                prompt_version=settings.prompt_version,
+                tool_runner=tool_runner,
+            )
+    return AssistantService(settings, offices, handbook, make_responder(responder_name), rag)

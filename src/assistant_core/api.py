@@ -14,8 +14,8 @@ from assistant_core.models import (
     FeedbackIn,
     FeedbackOut,
     Message,
+    Weather,
 )
-from assistant_core.models import ChatRequest, ChatResponse, Message, Weather
 from assistant_core.ratelimit import RateLimiter
 from assistant_core.responder import StubLLMResponder
 from assistant_core.service import AssistantService
