@@ -20,6 +20,9 @@ class ChatResponse(BaseModel):
     sources: list[Source] = []
     degraded: bool = False
     request_id: str
+    path: str = "deterministic"
+    escalate: bool = False
+    confidence: float | None = None
 
 
 class FeedbackIn(BaseModel):
