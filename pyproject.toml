@@ -18,6 +18,9 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[project.optional-dependencies]
+ui = ["streamlit>=1.39,<2"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [".", "src"]
