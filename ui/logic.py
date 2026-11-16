@@ -1,7 +1,3 @@
-"""UI helper functions for the chat page (Lab 7, Part D).
-
-Pure functions so they can be tested without a browser.
-"""
 
 from __future__ import annotations
 
