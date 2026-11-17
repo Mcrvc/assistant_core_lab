@@ -32,7 +32,7 @@ def test_new_answer_animates_once_and_reruns_do_not_resend():
     with patch("ui.api_client.AssistantClient") as client, patch("ui.streaming.sleep"):
         client.return_value.ask.return_value = ChatResult(ok=True, answer=answer, request_id="r1")
         with patch("streamlit.write_stream", side_effect=lambda chunks: "".join(chunks)) as write_stream:
-            app = AppTest.from_file(DEMO, default_timeout=10).run()
+            app = AppTest.from_file(str(DEMO), default_timeout=10).run()
             app.chat_input[0].set_value("A question").run()
             assert not app.exception
             assert write_stream.call_count == 1
@@ -51,7 +51,7 @@ def test_errors_escalation_and_disabled_animation_appear_immediately(kind):
                         error="Cannot reach the assistant.", escalate=kind == "escalate")
     with patch("ui.api_client.AssistantClient") as client, patch("streamlit.write_stream") as write_stream:
         client.return_value.ask.return_value = result
-        app = AppTest.from_file(DEMO, default_timeout=10).run()
+        app = AppTest.from_file(str(DEMO), default_timeout=10).run()
         if kind == "disabled":
             app.toggle[0].set_value(False).run()
         app.chat_input[0].set_value("A question").run()
@@ -65,7 +65,7 @@ def test_errors_escalation_and_disabled_animation_appear_immediately(kind):
 
 def test_empty_and_too_long_questions_do_not_call_api():
     with patch("ui.api_client.AssistantClient") as client:
-        app = AppTest.from_file(DEMO, default_timeout=10).run()
+        app = AppTest.from_file(str(DEMO), default_timeout=10).run()
         app.chat_input[0].set_value("   ").run()
         assert app.warning[0].value == "Please type a question."
         app.chat_input[0].set_value("x" * 2001).run()
@@ -77,7 +77,7 @@ def test_streamlit_renders_the_final_answer():
     answer = "**Thesis registration**\n\nAt least 120 credits and GPA 2.0."
     with patch("ui.api_client.AssistantClient") as client, patch("ui.streaming.sleep"):
         client.return_value.ask.return_value = ChatResult(ok=True, answer=answer)
-        app = AppTest.from_file(DEMO, default_timeout=10).run()
+        app = AppTest.from_file(str(DEMO), default_timeout=10).run()
         app.chat_input[0].set_value("Can I register my thesis?").run()
         assert not app.exception
         assert answer in [item.value for item in app.markdown]
@@ -96,7 +96,7 @@ def test_demo_displays_a_response_from_the_root_api():
         )
         client = AssistantClient("http://api.test", transport=transport)
         with patch("ui.api_client.AssistantClient", return_value=client), patch("ui.streaming.sleep"):
-            app = AppTest.from_file(DEMO, default_timeout=10).run()
+            app = AppTest.from_file(str(DEMO), default_timeout=10).run()
             app.chat_input[0].set_value("Tuition for 18 credits and 2 retake").run()
             assert not app.exception
             assert "9,450,000" in app.session_state.d5_messages[-1]["content"]
