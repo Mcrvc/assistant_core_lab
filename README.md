@@ -64,3 +64,17 @@ The comparison uses the root application and all 25 Lab 6 questions in
 answers through the same router and tools.
 See [the Part F report](docs/lab6/path_comparison.md) for the measured table,
 failure analysis, three-sentence recommendation and code versions used.
+
+## Lab 7 — D5 typing animation bonus
+
+Install the UI extra with `.venv\Scripts\python.exe -m pip install -e ".[ui]"`.
+Start the API with `.venv\Scripts\python.exe -m uvicorn assistant_api.main:create_app --factory`,
+then in a second terminal run:
+
+```powershell
+.venv\Scripts\python.exe -m streamlit run ui/streaming_demo.py
+```
+
+New answers appear word by word after the API returns; users can turn off the
+animation. See [the D5 guide](docs/lab7/d5_streaming.md) for the concept, demo steps,
+tests and how to reuse the animation in the team's chat UI.
