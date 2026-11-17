@@ -1,10 +1,22 @@
-
+"""UI logic without Streamlit, so it can be unit-tested."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from ui.api_client import ChatResult
 
-if TYPE_CHECKING:  # ChatResult lives in ui/api_client.py (given in the Lab 7 starter)
-    from ui.api_client import ChatResult
+WELCOME = ("Hi! I can answer questions about fees, offices and the student handbook. "
+           "Try: “Can I register my thesis with 118 credits?”")
+EXAMPLES = ["Can I register my thesis with 118 credits?", "Tuition for 18 credits and 2 retake",
+            "Where is the library?", "I lost my student card"]
+
+
+def validate_input(text: str) -> str | None:
+    """Return an error message for bad input, or None if it is fine."""
+    t = text.strip()
+    if not t:
+        return "Please type a question."
+    if len(t) > 2000:
+        return "Your question is too long (max 2000 characters)."
+    return None
 
 
 def format_sources(sources: list[dict]) -> str:
