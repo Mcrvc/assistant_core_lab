@@ -36,6 +36,13 @@ with st.sidebar:
             st.session_state.pending = ex
     st.caption("This is an AI assistant. Check important decisions with the Training Office.")
 
+def vote(rid: str, rating: int, thanks: str) -> None:
+    """👍/👎 callback: send the rating once, hide the buttons, say thanks."""
+    client.send_feedback(rid, rating)
+    st.session_state.rated.add(rid)
+    st.toast(thanks)
+
+
 # ---- history -------------------------------------------------------------------
 for i, m in enumerate(st.session_state.messages):
     with st.chat_message(m["role"]):
@@ -47,14 +54,10 @@ for i, m in enumerate(st.session_state.messages):
         rid = m.get("request_id")
         if rid and rid not in st.session_state.rated:
             c1, c2, _ = st.columns([1, 1, 6])
-            if c1.button("👍", key=f"up{i}"):
-                client.send_feedback(rid, 1)
-                st.session_state.rated.add(rid)
-                st.toast("Thanks for your feedback!")
-            if c2.button("👎", key=f"down{i}"):
-                client.send_feedback(rid, -1)
-                st.session_state.rated.add(rid)
-                st.toast("Thanks — we will look at this answer.")
+            # on_click runs before the next rerun draws the page, so the buttons are gone at once.
+            c1.button("👍", key=f"up{i}", on_click=vote, args=(rid, 1, "Thanks for your feedback!"))
+            c2.button("👎", key=f"down{i}", on_click=vote,
+                      args=(rid, -1, "Thanks — we will look at this answer."))
 
 # ---- new question ----------------------------------------------------------------
 question = st.chat_input("Ask about fees, offices or the handbook…") or st.session_state.pop("pending", None)
