@@ -65,7 +65,24 @@ answers through the same router and tools.
 See [the Part F report](docs/lab6/path_comparison.md) for the measured table,
 failure analysis, three-sentence recommendation and code versions used.
 
-## Lab 7 — D5 typing animation bonus
+## Lab 7 — Run the UI & API (MVP v1)
+
+Install the UI extra with `.venv\Scripts\python.exe -m pip install -e ".[ui]"`.
+Start both servers from the repository root in two terminals:
+
+```powershell
+# Terminal 1 — Backend API (port 8000)
+.venv\Scripts\python.exe -m uvicorn assistant_api.main:create_app --factory
+```
+
+```powershell
+# Terminal 2 — Streamlit UI (port 8501)
+.venv\Scripts\python.exe -m streamlit run ui/app.py
+```
+
+Open `http://localhost:8501`.
+
+### D5 typing animation bonus
 
 Install the UI extra with `.venv\Scripts\python.exe -m pip install -e ".[ui]"`.
 Start the API with `.venv\Scripts\python.exe -m uvicorn assistant_api.main:create_app --factory`,
