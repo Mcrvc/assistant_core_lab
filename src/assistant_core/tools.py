@@ -2,11 +2,29 @@ import re
 
 from assistant_core.errors import InvalidRequest
 
+WORD_TO_DIGIT = {
+    "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4",
+    "five": "5", "six": "6", "seven": "7", "eight": "8", "nine": "9", "ten": "10",
+    "eleven": "11", "twelve": "12", "thirteen": "13", "fourteen": "14", "fifteen": "15",
+    "sixteen": "16", "seventeen": "17", "eighteen": "18", "nineteen": "19", "twenty": "20",
+    "twenty-one": "21", "twenty-two": "22", "twenty-three": "23", "twenty-four": "24", "twenty-five": "25",
+    "twenty-six": "26", "twenty-seven": "27", "twenty-eight": "28", "twenty-nine": "29", "thirty": "30",
+}
+
+
+def _normalize_number_words(text: str) -> str:
+    """Normalize English number words ('one'..'thirty') to digits (BUG-7 mitigation)."""
+    norm = text.lower()
+    for word, digit in WORD_TO_DIGIT.items():
+        norm = re.sub(rf"\b{word}\b", digit, norm)
+    return norm
+
 
 def parse_credits(text: str) -> tuple[int, int]:
     """Extract (credits, retake_credits) from 'fee for 18 credits and 2 retake'."""
-    retake = re.search(r"(\d+)\s*retake", text)
-    numbers = [int(n) for n in re.findall(r"\d+", text)]
+    normalized = _normalize_number_words(text)
+    retake = re.search(r"(\d+)\s*retake", normalized)
+    numbers = [int(n) for n in re.findall(r"\d+", normalized)]
     retake_n = int(retake.group(1)) if retake else 0
     others = numbers.copy()
     if retake:

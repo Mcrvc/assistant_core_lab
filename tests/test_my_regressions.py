@@ -16,3 +16,9 @@ def test_fee_retake_written_as_word_is_counted(service):
     """BUG-7: 'two retakes' was invisible to parse_credits, total too low."""
     r = service.handle(Message(text="tuition for 18 credits and two retakes"))
     assert "8,100,000" not in r.answer
+
+
+def test_fee_main_credits_written_as_word_is_counted(service):
+    """Regression test 3: main credits written as word e.g. 'eighteen credits'."""
+    r = service.handle(Message(text="tuition for eighteen credits and two retakes"))
+    assert "9,450,000" in r.answer
