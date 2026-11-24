@@ -1,7 +1,7 @@
 import logging
 
 from assistant_core.errors import InvalidRequest, ProviderError
-from assistant_core.guard import PRIVATE_REPLY, is_private_request
+from assistant_core.guard import PRIVATE_REPLY, INJECTION_REPLY, is_private_request, is_injection
 from assistant_core.models import Intent, Message, Response, Source
 from assistant_core.responder import TemplateResponder
 from assistant_core.router import route
@@ -35,6 +35,8 @@ class AssistantService:
         intent = route(msg.text, self.offices.names)
         if intent is Intent.GREETING:
             return Response(answer="Hello! I can help with offices, fees and rules.", intent=intent)
+        if is_injection(msg.text):
+            return Response(answer=INJECTION_REPLY, intent=Intent.UNKNOWN, path="abstain")
         if intent is Intent.FEE:
             return self._fee(msg.text)
         if intent is Intent.OFFICE:
@@ -63,9 +65,11 @@ class AssistantService:
         return Response(answer=f"Your tuition is {total:,} VND", intent=Intent.FEE)
 
     def _rule(self, text: str) -> Response:
+        if is_injection(text):
+            return Response(answer=INJECTION_REPLY, intent=Intent.UNKNOWN, path="abstain")
+        if is_private_request(text):
+            return Response(answer=PRIVATE_REPLY, intent=Intent.UNKNOWN, path="abstain")
         if self.rag is not None:
-            if is_private_request(text):
-                return Response(answer=PRIVATE_REPLY, intent=Intent.UNKNOWN, path="abstain")
             return self.rag.answer(text)
         rule = self.handbook.search(text)
         if rule is None:
