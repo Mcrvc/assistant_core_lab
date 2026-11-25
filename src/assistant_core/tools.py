@@ -23,6 +23,8 @@ def _normalize_number_words(text: str) -> str:
 def parse_credits(text: str) -> tuple[int, int]:
     """Extract (credits, retake_credits) from 'fee for 18 credits and 2 retake'."""
     normalized = _normalize_number_words(text)
+    if re.search(r"\d+[.,]\d+", normalized):
+        raise InvalidRequest("Credits must be a whole number (for example, 18 credits).")
     retake = re.search(r"(\d+)\s*retake", normalized)
     numbers = [int(n) for n in re.findall(r"\d+", normalized)]
     retake_n = int(retake.group(1)) if retake else 0

@@ -22,3 +22,10 @@ def test_fee_main_credits_written_as_word_is_counted(service):
     """Regression test 3: main credits written as word e.g. 'eighteen credits'."""
     r = service.handle(Message(text="tuition for eighteen credits and two retakes"))
     assert "9,450,000" in r.answer
+
+
+def test_fractional_credits_rejected(service):
+    """BUG-9 (X07): fractional credits like '18.5 credits' must not be truncated and priced."""
+    r = service.handle(Message(text="Can you calculate tuition for 18.5 credits?"))
+    assert "VND" not in r.answer
+    assert "whole number" in r.answer.lower()
